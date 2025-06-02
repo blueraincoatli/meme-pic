@@ -84,4 +84,4 @@ def process_image():
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 0)) or 0
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=53473, debug=True)
