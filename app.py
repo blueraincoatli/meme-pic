@@ -1,4 +1,6 @@
 import os
+import argparse
+import socket
 from flask import Flask, render_template, request, send_file
 from PIL import Image
 import numpy as np
@@ -82,6 +84,67 @@ def process_image():
         download_name=f'packaged_{file.filename}'
     )
 
+def is_port_available(host, port):
+    """检查端口是否可用"""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind((host, port))
+            return True
+    except OSError:
+        return False
+
+def find_available_port(host='127.0.0.1', start_port=5000, max_attempts=100):
+    """寻找可用端口"""
+    for port in range(start_port, start_port + max_attempts):
+        if is_port_available(host, port):
+            return port
+    raise RuntimeError(f"无法在 {host} 上找到可用端口 (尝试范围: {start_port}-{start_port + max_attempts})")
+
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 0)) or 0
-    app.run(host='0.0.0.0', port=53473, debug=True)
+    # 添加命令行参数支持
+    parser = argparse.ArgumentParser(description='图像电子包浆处理工具')
+    parser.add_argument('--port', type=int, default=None, help='指定端口号')
+    parser.add_argument('--host', type=str, default='127.0.0.1', help='指定主机地址 (默认: 127.0.0.1)')
+    parser.add_argument('--debug', action='store_true', help='启用调试模式')
+    
+    args = parser.parse_args()
+    
+    # 确定主机地址
+    host = args.host
+    
+    # 确定端口
+    if args.port:
+        # 用户指定了端口，检查是否可用
+        if is_port_available(host, args.port):
+            port = args.port
+            print(f"使用指定端口: {port}")
+        else:
+            print(f"警告：端口 {args.port} 不可用，正在寻找替代端口...")
+            port = find_available_port(host, args.port)
+            print(f"使用替代端口: {port}")
+    else:
+        # 没有指定端口，自动寻找可用端口
+        # 优先尝试常用的开发端口
+        preferred_ports = [5000, 8000, 8080, 3000, 4000]
+        port = None
+        
+        for preferred_port in preferred_ports:
+            if is_port_available(host, preferred_port):
+                port = preferred_port
+                break
+        
+        if port is None:
+            port = find_available_port(host)
+        
+        print(f"自动选择端口: {port}")
+    
+    print(f"服务器启动地址: http://{host}:{port}")
+    print("按 Ctrl+C 停止服务器")
+    
+    try:
+        app.run(host=host, port=port, debug=args.debug)
+    except KeyboardInterrupt:
+        print("\n服务器已停止")
+    except Exception as e:
+        print(f"启动服务器时出错: {e}")
+        print("尝试以管理员权限运行，或者使用不同的端口")
