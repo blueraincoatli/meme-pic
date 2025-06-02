@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电子包浆生成器</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>电子包浆生成器</h1>
+        <p>上传高清图片，生成具有"电子包浆"效果的劣质图像</p>
+        
+        <form action="/process" method="post" enctype="multipart/form-data">
+            <div class="upload-area" id="upload-area">
+                <input type="file" name="file" id="file-input" accept="image/*">
+                <label for="file-input">
+                    <span id="file-name">点击选择图片或拖拽到此处</span>
+                </label>
+            </div>
+            
+            <!-- 图片预览区域 -->
+            <div id="preview-area" style="display:none; margin-top:20px;">
+                <h3>图片预览</h3>
+                <img id="preview-image" src="" alt="预览图" style="max-width:100%; max-height:300px; border:1px solid #ddd; border-radius:6px;">
+            </div>
+            
+            <button type="submit" id="submit-btn" disabled>生成电子包浆效果</button>
+        </form>
+        
+        <div class="tips">
+            <h3>效果说明：</h3>
+            <ul>
+                <li>模拟多次JPEG压缩造成的质量损失</li>
+                <li>添加随机噪点和马赛克伪影</li>
+                <li>产生类似网络传播后的劣化效果</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : '点击选择图片或拖拽到此处';
+            document.getElementById('file-name').textContent = fileName;
+        });
+        
+        const uploadArea = document.getElementById('upload-area');
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            document.getElementById('file-input').files = e.dataTransfer.files;
+            document.getElementById('file-name').textContent = e.dataTransfer.files[0].name;
+        });
+    </script>
+<script>
+    // 图片预览功能
+    document.getElementById('file-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const previewArea = document.getElementById('preview-area');
+        const previewImage = document.getElementById('preview-image');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        if (file && file.type.match('image.*')) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewArea.style.display = 'block';
+                submitBtn.disabled = false;
+            }
+            
+            reader.readAsDataURL(file);
+        } else {
+            previewArea.style.display = 'none';
+            submitBtn.disabled = true;
+            alert('请选择有效的图片文件 (JPG, PNG等)');
+        }
+    });
+</script>
+</body>
+</html>
