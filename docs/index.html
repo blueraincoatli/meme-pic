@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>电子包浆效果生成器</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .upload-area { border: 2px dashed #ccc; padding: 40px; text-align: center; margin: 20px 0; }
+        #preview { max-width: 100%; display: none; margin-top: 20px; }
+        #downloadBtn { display: none; margin: 20px auto; padding: 10px 20px; }
+    </style>
+</head>
+<body>
+    <h1>电子包浆效果生成器</h1>
+    <div class="upload-area" id="dropZone">
+        <p>拖放图片到此处或点击上传</p>
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+    <img id="preview" alt="图片预览">
+    <button id="downloadBtn">下载处理结果</button>
+    
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('preview');
+                    preview.src = event.target.result;
+                    preview.style.display = 'block';
+                    document.getElementById('downloadBtn').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            alert('静态演示版已显示预览效果\n实际处理功能需部署后端服务');
+        });
+    </script>
+</body>
+</html>
