@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "main.ts": {
+      "runtime": "deno"
+    }
+  },
+  "regions": ["sin1"],
+  "crons": [],
+  "env": {
+    "DENO_DIR": ".deno"
+  }
+} 

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .preview-item {
+            position: relative;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .preview-image {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+        .preview-name {
+            padding: 0.5rem;
+            background: #f8f9fa;
+            font-size: 0.8rem;
+            text-align: center;
+            word-break: break-all;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .file-count {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 5px;
+            color: #1565c0;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🖼️ 图像上传测试</h1>
+    
+    <div class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+        <div id="uploadText">
+            <p>📸 点击或拖拽图片到这里</p>
+            <p>支持多张图片上传</p>
+        </div>
+    </div>
+    
+    <div id="previewContainer" class="hidden">
+        <div class="file-count" id="fileCount">已选择 0 张图片</div>
+        <div class="preview-grid" id="previewGrid"></div>
+        <button type="button" class="btn" id="clearBtn">🗑️ 清空所有图片</button>
+        <button type="button" class="btn" id="processBtn" disabled>🔄 开始处理</button>
+    </div>
+
+    <script>
+        console.log('开始初始化...');
+        
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const uploadText = document.getElementById('uploadText');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewGrid = document.getElementById('previewGrid');
+        const fileCount = document.getElementById('fileCount');
+        const processBtn = document.getElementById('processBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        let selectedFiles = [];
+
+        console.log('元素检查:', {
+            fileInput: !!fileInput,
+            uploadArea: !!uploadArea,
+            previewContainer: !!previewContainer,
+            processBtn: !!processBtn
+        });
+
+        // 点击上传
+        uploadArea.addEventListener('click', function(e) {
+            console.log('点击上传区域');
+            fileInput.click();
+        });
+
+        // 拖拽功能
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+            console.log('拖拽悬停');
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            console.log('文件拖拽放下');
+            
+            const files = Array.from(e.dataTransfer.files);
+            console.log('拖拽文件:', files);
+            handleFileSelect(files);
+        });
+
+        // 文件选择
+        fileInput.addEventListener('change', function(e) {
+            console.log('文件选择改变');
+            const files = Array.from(e.target.files);
+            console.log('选择的文件:', files);
+            handleFileSelect(files);
+        });
+
+        // 清空按钮
+        clearBtn.addEventListener('click', function() {
+            console.log('清空文件');
+            selectedFiles = [];
+            updatePreview();
+            fileInput.value = '';
+        });
+
+        function handleFileSelect(newFiles) {
+            console.log('处理文件选择:', newFiles.length);
+            
+            const imageFiles = newFiles.filter(file => {
+                const isImage = file.type.startsWith('image/');
+                console.log(\`文件 \${file.name} 是图片: \${isImage}, 类型: \${file.type}\`);
+                return isImage;
+            });
+            
+            if (imageFiles.length !== newFiles.length) {
+                alert('部分文件不是图片格式');
+            }
+            
+            // 添加文件
+            imageFiles.forEach(file => {
+                const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+                if (!exists) {
+                    selectedFiles.push(file);
+                    console.log('添加文件:', file.name);
+                }
+            });
+            
+            console.log('当前文件总数:', selectedFiles.length);
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const count = selectedFiles.length;
+            console.log('更新预览，文件数量:', count);
+            
+            if (count === 0) {
+                previewContainer.classList.add('hidden');
+                uploadText.style.display = 'block';
+                processBtn.disabled = true;
+                return;
+            }
+            
+            previewContainer.classList.remove('hidden');
+            uploadText.style.display = 'none';
+            processBtn.disabled = false;
+            
+            fileCount.textContent = \`已选择 \${count} 张图片\`;
+            
+            // 清空并重新创建预览
+            previewGrid.innerHTML = '';
+            
+            selectedFiles.forEach((file, index) => {
+                console.log('创建预览:', file.name);
+                
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                
+                const img = document.createElement('img');
+                img.className = 'preview-image';
+                img.alt = file.name;
+                
+                const fileName = document.createElement('div');
+                fileName.className = 'preview-name';
+                fileName.textContent = file.name;
+                
+                // 读取图片
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    console.log('图片加载完成:', file.name);
+                };
+                reader.onerror = function(e) {
+                    console.error('图片读取失败:', file.name, e);
+                };
+                reader.readAsDataURL(file);
+                
+                previewItem.appendChild(img);
+                previewItem.appendChild(fileName);
+                previewGrid.appendChild(previewItem);
+            });
+            
+            console.log('预览更新完成');
+        }
+
+        // 处理按钮
+        processBtn.addEventListener('click', function() {
+            alert(\`准备处理 \${selectedFiles.length} 张图片！\`);
+        });
+
+        console.log('初始化完成');
+    </script>
+</body>
+</html> 

@@ -1,7 +1,8 @@
 import os
 import argparse
 import socket
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, jsonify
+from flask_cors import CORS
 from PIL import Image
 import numpy as np
 import cv2
@@ -9,6 +10,7 @@ import io
 
 import random  # 用于电子包浆算法
 app = Flask(__name__)
+CORS(app)  # 启用CORS支持
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 限制16MB
 
@@ -83,6 +85,40 @@ def process_image():
         as_attachment=True,
         download_name=f'packaged_{file.filename}'
     )
+
+@app.route('/api/process', methods=['POST'])
+def process_image_api():
+    """API版本的图片处理，返回base64编码的图片"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "没有上传文件"}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "未选择文件"}), 400
+        
+        # 读取图片
+        img = Image.open(file.stream)
+        
+        # 应用电子包浆效果
+        processed_img = apply_realistic_electron_packaging(img)
+        
+        # 转换为base64
+        output_buffer = io.BytesIO()
+        processed_img.save(output_buffer, format="JPEG", quality=30)
+        output_buffer.seek(0)
+        
+        import base64
+        img_base64 = base64.b64encode(output_buffer.getvalue()).decode('utf-8')
+        
+        return jsonify({
+            "success": True,
+            "image": f"data:image/jpeg;base64,{img_base64}",
+            "filename": f"packaged_{file.filename}"
+        })
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 def is_port_available(host, port):
     """检查端口是否可用"""

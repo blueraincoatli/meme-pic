@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply font-sans;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-gray-900 via-retro-900 to-black text-white min-h-screen;
+  }
+}
+
+@layer components {
+  .retro-border {
+    @apply border-2 border-retro-400 shadow-lg shadow-retro-400/20;
+  }
+  
+  .glitch-text {
+    position: relative;
+    color: #fff;
+    text-shadow: 
+      0.05em 0 0 #ff0000,
+      -0.025em -0.05em 0 #00ff00,
+      0.025em 0.05em 0 #0000ff;
+  }
+  
+  .retro-button {
+    @apply bg-gradient-to-r from-retro-600 to-retro-500 
+           hover:from-retro-500 hover:to-retro-400
+           border-2 border-retro-300
+           text-white font-bold py-3 px-6 
+           transform transition-all duration-200
+           hover:scale-105 hover:shadow-lg hover:shadow-retro-400/30
+           active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+  
+  .upload-zone {
+    @apply border-2 border-dashed border-retro-400/50 
+           hover:border-retro-400 
+           transition-all duration-300
+           bg-gradient-to-br from-retro-900/20 to-retro-800/20
+           hover:from-retro-800/30 hover:to-retro-700/30;
+  }
+  
+  .scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      #00ff00, 
+      transparent
+    );
+    animation: scan 2s ease-in-out infinite;
+  }
+} 
